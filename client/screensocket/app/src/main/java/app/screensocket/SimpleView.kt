@@ -9,6 +9,7 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
+import kotlin.math.ceil
 
 class SimpleView(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) :
     View(context, attrs, defStyleAttr, defStyleRes) {
@@ -57,7 +58,7 @@ class SimpleView(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defS
         imageWidth = width
         imageHeight = height
 
-        val (w, h) = findRatio(imageWidth, imageHeight, this.height, this.width)
+        val (w, h) = findRatio(imageWidth, imageHeight, this.width, this.height)
 
         previewWidth = w
         previewHeight = h
@@ -66,11 +67,11 @@ class SimpleView(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defS
         // val rh = h / imageHeight.toFloat()
         // canvasMatrix.setScale(rw, rh)
 
-        canvasMatrix.setRotate(90f, 0f, 0f)
-        canvasMatrix.postTranslate(
-            this.width.toFloat() / 2 + h / 2,
-            this.height.toFloat() / 2 - w / 2
-        )
+//        canvasMatrix.setRotate(90f, 0f, 0f)
+//        canvasMatrix.postTranslate(
+//            this.width.toFloat() / 2 + h / 2,
+//            this.height.toFloat() / 2 - w / 2
+//        )
 
         ready = true
     }
@@ -92,29 +93,33 @@ class SimpleView(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defS
             newHeight = ratioHeight * imageHeight
         }
 
-        return Pair(newWidth.toInt(), newHeight.toInt())
+        return Pair(ceil(newWidth).toInt(), ceil(newHeight).toInt())
     }
 
     // Create bitmap data from RGB byte array
-    // fun updateArray(data: ByteArray) {
-    //     synchronized(lock) {
-    //         bitmap = Bitmap.createBitmap(
-    //             data.asBitmapData(),
-    //             imageWidth,
-    //             imageHeight,
-    //             Bitmap.Config.ARGB_8888
-    //         )
-    //         postInvalidate()
-    //     }
-    // }
+    fun updateArray(data: ByteArray) {
+        synchronized(lock) {
+            bitmap = Bitmap.createBitmap(
+                data.asBitmapData(),
+                imageWidth,
+                imageHeight,
+                Bitmap.Config.ARGB_8888
+            )?.let {
+				Bitmap.createScaledBitmap(it, previewWidth, previewHeight, true)
+			}
+            postInvalidate()
+        }
+    }
 
     // Create bitmap data from JPG
     fun updateImage(data: ByteArray) {
         synchronized(lock) {
-            log("$previewWidth $previewHeight")
-            bitmap = BitmapFactory.decodeByteArray(data, 0, data.size)?.let {
-                Bitmap.createScaledBitmap(it, previewWidth, previewHeight, true)
-            }
+			// val start = System.nanoTime()
+			bitmap = BitmapFactory.decodeByteArray(data, 0, data.size)?.let {
+				Bitmap.createScaledBitmap(it, previewWidth, previewHeight, true)
+			}
+			// val end = System.nanoTime()
+			// log("Elapsed: ${(end - start) / 1000000000.0f} seconds")
             postInvalidate()
         }
     }

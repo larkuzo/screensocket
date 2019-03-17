@@ -16,6 +16,7 @@ private:
     QString dimension;
     QWebSocketServer *server;
     QUdpSocket *socket;
+    QPushButton *startButton, *stopButton;
     QLabel *preview;
     QImage last;
     QTimer *timer;
